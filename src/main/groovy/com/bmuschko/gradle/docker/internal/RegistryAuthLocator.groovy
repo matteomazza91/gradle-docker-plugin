@@ -68,14 +68,18 @@ class RegistryAuthLocator {
      * no credentials found
      */
     AuthConfig lookupAuthConfig(String image) {
-        return lookupAuthConfig(image, new AuthConfig())
+        AuthConfig authConfigForRepository = lookupAuthConfigForRepository(getRepository(image))
+        if (authConfigForRepository != null) {
+            return authConfigForRepository
+        }
+        return new AuthConfig()
     }
 
     /**
      * Gets authorization information
-     * using $DOCKER_CONFIG/.docker/config.json file
+     * using the registryCredentials object
      * If missing, gets the information from
-     * the registryCredentials object
+     * $DOCKER_CONFIG/.docker/config.json file
      * @param registryCredentials extension of type registryCredentials
      * @param image the name of docker image the action to be authorized for
      * @return AuthConfig object with a credentials info or default object if
@@ -83,8 +87,8 @@ class RegistryAuthLocator {
      */
     AuthConfig lookupAuthConfig(String image,
                                 DockerRegistryCredentials registryCredentials) {
-        AuthConfig defaultConfig =  createAuthConfig(registryCredentials)
-        return lookupAuthConfig(image, defaultConfig)
+        AuthConfig authConfig =  createAuthConfig(registryCredentials)
+        return lookupAuthConfig(image, authConfig)
     }
 
     /**
@@ -93,12 +97,11 @@ class RegistryAuthLocator {
      * @return AuthConfig object with a credentials info or default object if
      * no credentials found
      */
-    AuthConfig lookupAuthConfig(String image, AuthConfig defaultAuthConfig) {
-        AuthConfig authConfigForRepository = lookupAuthConfigForRepository(getRepository(image))
-        if (authConfigForRepository != null) {
-            return authConfigForRepository
+    AuthConfig lookupAuthConfig(String image, AuthConfig authConfig) {
+        if (authConfig != null) {
+            return authConfig
         }
-        return defaultAuthConfig
+        return lookupAuthConfig(image)
     }
 
     private AuthConfig lookupAuthConfigForRepository(String repository) {
