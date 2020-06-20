@@ -62,7 +62,6 @@ class RegistryAuthLocator {
      * Gets authorization information
      * using $DOCKER_CONFIG/.docker/config.json file
      * If missing, returns empty AuthConfig object
-     * @param registryCredentials extension of type registryCredentials
      * @param image the name of docker image the action to be authorized for
      * @return AuthConfig object with a credentials info or empty object if
      * no credentials found
@@ -87,19 +86,10 @@ class RegistryAuthLocator {
      */
     AuthConfig lookupAuthConfig(String image,
                                 DockerRegistryCredentials registryCredentials) {
-        AuthConfig authConfig =  createAuthConfig(registryCredentials)
-        return lookupAuthConfig(image, authConfig)
-    }
-
-    /**
-     * Gets authorization information using $DOCKER_CONFIG/.docker/config.json file
-     * @param image the name of docker image the action to be authorized for
-     * @return AuthConfig object with a credentials info or default object if
-     * no credentials found
-     */
-    AuthConfig lookupAuthConfig(String image, AuthConfig authConfig) {
-        if (authConfig != null) {
-            return authConfig
+        String repository = getRepository(image)
+        String registryUrl = registryCredentials.getUrl().getOrElse("")
+        if (registryUrl.endsWith('://' + repository) || registryUrl == repository) {
+            return createAuthConfig(registryCredentials)
         }
         return lookupAuthConfig(image)
     }
